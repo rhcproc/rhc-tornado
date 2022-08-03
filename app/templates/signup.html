@@ -1,0 +1,156 @@
+{% extends 'base_auth.html' %}
+
+{% block title %} Signup {% end %}
+
+{% block content %}
+
+
+<h2 class="ui teal image header">
+  <a href='/'>
+    <div class="content" style="color:#1b1c1d;">
+      Sign-up to your account
+    </div>
+  </a>
+</h2>
+
+<div id='signup'>
+  <form class="ui large form" method="POST" action="/signup" enctype="application/x-www-form-urlencoded">
+    <div class="ui stacked segment">
+      <div style="text-align: left;  margin-bottom:0.6em; color: #2c3e50 ; font-weight: 500;">
+      </div>
+      <div class="required field">
+        <div class="ui left icon input">
+          <i class="user icon"></i>
+          <input type="text" name="email" placeholder="E-mail" v-model="email" style="margin-right:1em;">
+          <template v-if="emailStatus">
+            <div class="ui teal button" @click="checkID"> <i class="check icon"></i> </div>
+          </template>
+          <template v-else>
+            <div class="ui yellow button" @click="checkID"> Check </div>
+          </template>
+        </div>
+
+        <div style="margin-top:0.55em;">
+          <template v-if="emailStatus">
+            <div class="ui teal button" @click="checkID"> <i class="check icon"></i> </div>
+          </template>
+          <template v-else-if="emailStatus === false">
+            <div class="ui pointing label">
+              <p style="color: #e67e22;">[[ emailMsg ]]</p>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="required field">
+        <div class="ui left icon input">
+          <i class="lock icon"></i>
+          <input type="password" name="password" placeholder="Password" v-model="password">
+        </div>
+      </div>
+
+      <div class="required field">
+        <div class="ui left icon input">
+          <i class="lock icon"></i>
+          <input type="password" name="re_password" placeholder="Password (Confirmed)" v-model="re_password">
+        </div>
+      </div>
+
+      <template v-if="emailStatus==true">
+        <div class="ui fluid large teal submit button ">사용자 등록</div>
+      </template>
+      <template v-else>
+        <div class="ui fluid large teal submit button disabled" style="margin-bottom: 1em;;">
+          Submit</div>
+      </template>
+
+    </div>
+    <div class="ui error message"></div>
+  </form>
+</div>
+
+<div class="ui message" style="margin-bottom: 8em;">
+  <!--New to us?--><a href="/login">Move to login page</a>
+  <div style="margin-top:1em;"> <a href="/guest" style="color: #cd6155 ;">
+      Login as a Guest</a></div>
+</div>
+
+
+<script>
+  //Vue.http.options.emulateJSON = true; // send as 
+  new Vue({
+    el: '#signup',
+    delimiters: ["[[", "]]"],
+    data: {
+      user: {},
+      email: '',
+      emailMsg: '',
+      emailStatus: null,
+      password: '',
+      re_password: '',
+    },
+    created: function () {
+      $('.ui.dropdown').dropdown();
+      console.log('.ui.dropdown working.')
+    },
+    methods: {
+      setOptions: function () {
+        $('.ui.dropdown').dropdown();
+        $(".ui.form").form({
+          on: 'submit',
+          fields: {
+            email: {
+              identifier: 'email',
+              rules: [{
+                // type: 'email',
+                type: 'empty',
+                prompt: '이메일을 입력해주세요'
+              }]
+            },
+            password: {
+              identifier: 'password',
+              rules: [
+                {
+                  type: 'empty',
+                  prompt: '비밀번호를 입력해주세요'
+                },
+                {
+                  type: 'length[4]',
+                  prompt: '비밀번호는 4자리 이상이 되어야합니다'
+                }
+              ]
+            },
+            re_password: {
+              identifier: 're_password',
+              rules: [{
+                type: 'match[password]',
+                prompt: '비밀번호가 일치하지 않습니다. 다시 확인해주세요'
+              }]
+            }
+          }
+        });
+      },
+      checkID: function () {
+        this.setOptions();
+        this.$http.post('/checkid', {
+          email: this.email,
+
+        })
+          .then(function (res) {
+            //Success
+            console.log('success');
+            console.log(res.data.msg);
+            console.log(res.data.status);
+            this.emailMsg = res.data.msg;
+            this.emailStatus = res.data.status;
+          }, function (res) {
+            //Error Handling
+            console.log(res);
+          });
+      }
+
+    }
+  });
+</script>
+
+{% end content%}
